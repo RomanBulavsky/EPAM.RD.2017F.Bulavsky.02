@@ -52,11 +52,14 @@
     <Compile Include="Exceptions\ExistingUserException.cs" />
     <Compile Include="Exceptions\NotExistingUserException.cs" />
     <Compile Include="Exceptions\NotValidUserException.cs" />
+    <Compile Include="Implimentation\AddRemoveNotifier.cs" />
     <Compile Include="Implimentation\Logger.cs" />
     <Compile Include="Implimentation\User.cs" />
     <Compile Include="Implimentation\UserComparer.cs" />
+    <Compile Include="Implimentation\UserEventArgs.cs" />
     <Compile Include="Implimentation\UserIdGenerator.cs" />
     <Compile Include="Implimentation\UserService.cs" />
+    <Compile Include="Interfaces\IAddRemoveNotifier.cs" />
     <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="Interfaces\IIdGenerator.cs" />
     <Compile Include="Interfaces\IService.cs" />

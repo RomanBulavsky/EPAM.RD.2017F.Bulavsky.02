@@ -6,13 +6,18 @@ using UserSerivice.Interfaces;
 
 namespace UserSerivice.Implimentation
 {
-    public class UserService : IService<User>
+    
+    public class UserService : MarshalByRefObject,IService<User>
     {
-        private ILogger log;
+        //TODO: in iFace
+        public AddRemoveNotifier notifier;
+        private ILogger log;//TODO: static or singleton
+
         public string GetGenerator()
         {
             return IdGenerator.IdCreator.Method.ToString();
         }
+
         private IIdGenerator IdGenerator { get; }
 
         public UserService(Func<object, int> IdGenerator)
@@ -33,7 +38,9 @@ namespace UserSerivice.Implimentation
             //TODO:Eq comparer
             Storage = new HashSet<User>(new UserComparer());
             IdGenerator = new UserIdGenerator(o => o.GetHashCode());
+            notifier = new AddRemoveNotifier();
         }
+
         public UserService(bool swh)
         {
             if (swh)
@@ -43,7 +50,6 @@ namespace UserSerivice.Implimentation
             }
             else
             {
-
                 log = new Logger();
                 log.LogInfo("ctor (without loging)");
                 log = null;
@@ -51,20 +57,27 @@ namespace UserSerivice.Implimentation
             //TODO:Eq comparer
             Storage = new HashSet<User>(new UserComparer());
             IdGenerator = new UserIdGenerator(o => o.GetHashCode());
+            notifier = new AddRemoveNotifier();
         }
 
         public virtual HashSet<User> Storage { get; private set; }
 
         public void Add(User user)
         {
-            CheckArguments((object)user);
+            CheckArguments((object) user);
             if (this.Storage.Contains(user))
             {
+                log?.LogTrace($"The user named {user.FirstName} is already exist in storage");
+                log?.LogError(new ExistingUserException());
                 throw new ExistingUserException();
             }
 
+
+            log?.LogInfo($"adding user named {user.FirstName}");
+
             user.Id = this.IdGenerator.IdCreator(user);
             this.Storage.Add(user);
+            notifier.AddNotification(this, new UserEventArgs(user));
             //OnAddRemoveEvent();
         }
 
@@ -73,10 +86,15 @@ namespace UserSerivice.Implimentation
             CheckArguments(user);
             if (!this.Storage.Remove(user))
             {
+                log?.LogTrace($"The user named {user.FirstName} doesn't exist in storage");
+                log?.LogError(new NotExistingUserException());
                 throw new NotExistingUserException();
             }
+
+            notifier.RemoveNotification(this, new UserEventArgs(user));
             //OnAddRemoveEvent();
         }
+
         /// <summary>
         /// Searches <see cref="User"/> entities by <see cref="firstname"/>
         /// </summary>
@@ -86,6 +104,7 @@ namespace UserSerivice.Implimentation
         /// <exception cref="ArgumentException"></exception>
         public IEnumerable<User> SearchByFirstName(string firstname)
         {
+            log?.LogInfo($"SearchByFirstName user named: {firstname}");
             CheckArguments(firstname);
             return this.Storage.Where(u => u.FirstName.Equals(firstname));
         }
@@ -99,6 +118,7 @@ namespace UserSerivice.Implimentation
         /// <exception cref="ArgumentException"></exception>
         public IEnumerable<User> SearchByLastName(string lastName)
         {
+            log?.LogInfo($"SearchByLastName user named: {lastName}");
             CheckArguments(lastName);
             return this.Storage.Where(u => u.LastName.Equals(lastName));
         }
@@ -127,6 +147,32 @@ namespace UserSerivice.Implimentation
             {
                 throw new NotValidUserException();
             }
+        }
+
+        public void UpdateStorage(object sender, EventArgs args)//TODO: It's a bind
+        {
+            Console.WriteLine("Upt Storage");
+            log?.LogInfo($"UpdateStorage in {this} provided by {sender}");
+            Storage = ((UserService) sender).Storage;
+        }
+
+        public void AddToStorage(object sender, EventArgs args)
+        {
+            Console.WriteLine("Upt Storage");
+            log?.LogInfo($"UpdateStorage in {this} provided by {sender}");
+            Storage.Add(((UserEventArgs)args).User);
+        }
+
+        public void RemoveFromStorage(object sender, EventArgs args)
+        {
+            Console.WriteLine("Upt Storage");
+            log?.LogInfo($"UpdateStorage in {this} provided by {sender}");
+            Storage.Remove(((UserEventArgs)args).User);
+        }
+
+        public IEnumerable<string> Show()
+        {
+            return Storage.Select(u => u.ToString()).ToList();
         }
     }
 }

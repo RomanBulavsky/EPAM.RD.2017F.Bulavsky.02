@@ -10,6 +10,7 @@ using UserSerivice.Interfaces;
 
 namespace UserSerivice.Implimentation
 {
+    [Serializable]
     public class User : IUser, IXmlSerializable
     {
         public int? Id { get; set; }

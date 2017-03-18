@@ -7,6 +7,7 @@ using UserSerivice.Interfaces;
 
 namespace UserSerivice.Implimentation
 {
+    [Serializable]
     class UserIdGenerator : IIdGenerator
     {
         public UserIdGenerator(Func<object, int> idCreator)
