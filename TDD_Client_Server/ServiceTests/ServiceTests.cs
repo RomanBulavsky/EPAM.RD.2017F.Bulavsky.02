@@ -20,6 +20,7 @@ namespace ServiceTests
             var s = new UserService();
             // act 
             // assert is handled by ExpectedException
+            Console.WriteLine(s.GetGenerator());
             Assert.Throws<ArgumentNullException>(() => s.Add(null));
         }
 

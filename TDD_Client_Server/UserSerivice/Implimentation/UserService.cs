@@ -8,6 +8,11 @@ namespace UserSerivice.Implimentation
 {
     public class UserService : IService<User>
     {
+        private Logger log= new Logger();
+        public string GetGenerator()
+        {
+            return IdGenerator.IdCreator.Method.ToString();
+        }
         private IIdGenerator IdGenerator { get; }
 
         public UserService(Func<object, int> IdGenerator)
@@ -23,6 +28,7 @@ namespace UserSerivice.Implimentation
 
         public UserService()
         {
+            log.LogInfo("ctor ()");
             //TODO:Eq comparer
             Storage = new HashSet<User>(new UserComparer());
             IdGenerator = new UserIdGenerator(o => o.GetHashCode());
