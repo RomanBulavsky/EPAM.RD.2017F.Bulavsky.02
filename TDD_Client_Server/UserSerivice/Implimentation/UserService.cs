@@ -8,7 +8,7 @@ namespace UserSerivice.Implimentation
 {
     public class UserService : IService<User>
     {
-        private Logger log= new Logger();
+        private ILogger log;
         public string GetGenerator()
         {
             return IdGenerator.IdCreator.Method.ToString();
@@ -28,7 +28,26 @@ namespace UserSerivice.Implimentation
 
         public UserService()
         {
+            log = new Logger();
             log.LogInfo("ctor ()");
+            //TODO:Eq comparer
+            Storage = new HashSet<User>(new UserComparer());
+            IdGenerator = new UserIdGenerator(o => o.GetHashCode());
+        }
+        public UserService(bool swh)
+        {
+            if (swh)
+            {
+                log = new Logger();
+                log.LogInfo("ctor (switch)");
+            }
+            else
+            {
+
+                log = new Logger();
+                log.LogInfo("ctor (without loging)");
+                log = null;
+            }
             //TODO:Eq comparer
             Storage = new HashSet<User>(new UserComparer());
             IdGenerator = new UserIdGenerator(o => o.GetHashCode());
