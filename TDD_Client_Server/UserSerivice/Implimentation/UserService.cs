@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using UserSerivice.Exceptions;
 using UserSerivice.Interfaces;
 
@@ -17,6 +19,25 @@ namespace UserSerivice.Implimentation
         //TODO: in iFace
         public AddRemoveNotifier notifier;
         private ILogger log;//TODO: static or singleton
+
+        public UserService(bool isMaster,  bool isLog, HashSet<User> storage)
+        {
+            this.isMaster = isMaster;
+            if (isLog)
+            {
+                log = new Logger();
+                log.LogInfo("ctor (switch)");
+            }
+            else
+            {
+                log = new Logger();
+                log.LogInfo("ctor (without loging)");
+                log = null;
+            }
+            Storage = storage;
+            IdGenerator = new UserIdGenerator(o => o.GetHashCode());
+            this.notifier = new AddRemoveNotifier();
+        }
 
         public string GetGenerator()
         {
@@ -65,7 +86,8 @@ namespace UserSerivice.Implimentation
             notifier = new AddRemoveNotifier();
         }
 
-        public virtual HashSet<User> Storage { get; private set; }
+
+        public virtual HashSet<User> Storage { get; set; }
 
         public void Add(User user)
         {
@@ -124,7 +146,7 @@ namespace UserSerivice.Implimentation
         {
             log?.LogInfo($"SearchByFirstName user named: {firstname}");
             CheckArguments(firstname);
-            return this.Storage.Where(u => u.FirstName.Equals(firstname));
+            return this.Storage.Where(u => u.FirstName.Contains(firstname)).ToList();
         }
 
         /// <summary>
@@ -186,6 +208,32 @@ namespace UserSerivice.Implimentation
             Console.WriteLine("Upt Storage");
             log?.LogInfo($"UpdateStorage in {this} provided by {sender}");
             Storage.Remove(((UserEventArgs)args).User);
+        }
+
+        public void TcpAddToStorage(object sender, EventArgs args)
+        {
+            //loop connect to slave services and send them 
+            Console.WriteLine("TCP Upt Storage");
+
+            TcpClient client = null;
+            try
+            {
+                client = new TcpClient("127.0.0.1", 8888);
+                NetworkStream stream = client.GetStream();
+                new BinaryFormatter().Serialize(stream, this.Storage);
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                client.Close();
+            }
+
+            Console.WriteLine("Master give slave to SLAVE");
+            //Storage.Add(((UserEventArgs)args).User);
         }
 
         public IEnumerable<string> Show()
