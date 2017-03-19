@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\NotMasterException.cs" />
     <Compile Include="Exceptions\ExistingUserException.cs" />
     <Compile Include="Exceptions\NotExistingUserException.cs" />
     <Compile Include="Exceptions\NotValidUserException.cs" />

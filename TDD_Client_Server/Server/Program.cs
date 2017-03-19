@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,16 +8,40 @@ using UserSerivice.Implimentation;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Remoting;
+using Server.config;
+using System.Configuration;
 
 namespace Server
 {
+    
+    
     class Program
     {
+
+ 
         private static BooleanSwitch boolSwitch = new BooleanSwitch("mySwitch",
             "Switch in config file");
 
         static void Main(string[] args)
         {
+                   StartupFoldersConfigSection section = (StartupFoldersConfigSection)ConfigurationManager.GetSection("StartupFolders");
+
+        if ( section != null )
+        {
+        System.Diagnostics.Debug.WriteLine( section.FolderItems[0].FolderType );
+        System.Diagnostics.Debug.WriteLine( section.FolderItems[0].Path );
+        }
+
+            StartupMasterSlaveConfigSection section2 = (StartupMasterSlaveConfigSection)ConfigurationManager.GetSection("StartupMasterSlave");
+
+            if (section2 != null)
+            {
+                Console.WriteLine(section2.MasterSlaveItems[0].MasterSlaveType);
+                Console.WriteLine(section2.MasterSlaveItems[0].MasterSlaveCount);
+            }
+
+
+
             Console.WriteLine("Boolean switch {0} configured as {1}",
                 boolSwitch.DisplayName, boolSwitch.Enabled.ToString());
 

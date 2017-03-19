@@ -9,6 +9,11 @@ namespace UserSerivice.Implimentation
     
     public class UserService : MarshalByRefObject,IService<User>
     {
+        private bool isMaster = false;
+        public void Master()
+        {
+            isMaster = true;
+        }
         //TODO: in iFace
         public AddRemoveNotifier notifier;
         private ILogger log;//TODO: static or singleton
@@ -64,6 +69,12 @@ namespace UserSerivice.Implimentation
 
         public void Add(User user)
         {
+            if (!isMaster)
+            {
+                log?.LogWarn("Trying to you SLAVE instance as MASTER one");
+                log?.LogError(new NotMasterException());
+                throw new NotMasterException();
+            }
             CheckArguments((object) user);
             if (this.Storage.Contains(user))
             {
@@ -83,6 +94,13 @@ namespace UserSerivice.Implimentation
 
         public void Delete(User user)
         {
+            if (!isMaster)
+            {
+                log?.LogWarn("Trying to you SLAVE instance as MASTER one");
+                log?.LogError(new NotMasterException());
+                throw new NotMasterException();
+            }
+
             CheckArguments(user);
             if (!this.Storage.Remove(user))
             {
